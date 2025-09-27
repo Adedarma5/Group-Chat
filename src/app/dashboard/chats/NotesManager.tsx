@@ -91,6 +91,7 @@ function NoteItem({
             className={`p-3 rounded border w-full min-h-[60px] resize-none shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 overflow-hidden ${isEditing ? "bg-white" : "bg-gray-100"
               }`}
             value={block.text}
+            placeholder="Content..."
             readOnly={!isEditing}
             onChange={(e) => onEditBlock(note.id, idx, e.target.value)}
           />
