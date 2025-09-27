@@ -11,27 +11,44 @@ import MessageList from "@/components/chat/MessageList";
 import ReplyPreview from "@/components/chat/ReplyPreview";
 import FilePreview from "@/components/chat/FilePreview";
 
+// Tipe attachment Supabase
+interface MessageAttachment {
+  id: number;
+  message_id: number;
+  file_url: string;
+  file_type: "image" | "file";
+  uploading?: boolean;
+}
+
+// Message dengan relasi
+interface MessageWithRelations extends Message {
+  users?: User;
+  message_attachments?: MessageAttachment[];
+}
+
+// Tipe payload Supabase channel
+interface SupabaseInsertPayload<T> {
+  new: T;
+}
+
 interface ChatWindowProps {
   groupId: number | null;
   user: User | null;
 }
 
 export default function ChatWindow({ groupId, user }: ChatWindowProps) {
-  const [messages, setMessages] = useState<
-    (Message & { users?: User; message_attachments?: any[] })[]
-  >([]);
+  const [messages, setMessages] = useState<MessageWithRelations[]>([]);
   const [input, setInput] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [showDetail, setShowDetail] = useState(false);
   const [group, setGroup] = useState<Group | null>(null);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
-  const [actionTarget, setActionTarget] = useState<{
-    message: Message | null;
-    isMine: boolean;
-  }>({ message: null, isMine: false });
+  const [actionTarget, setActionTarget] = useState<{ message: Message | null; isMine: boolean }>({
+    message: null,
+    isMine: false,
+  });
   const [showActions, setShowActions] = useState(false);
   const [sendingFiles, setSendingFiles] = useState(false);
-
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const formatDateLabel = (timestamp: string) =>
@@ -47,7 +64,7 @@ export default function ChatWindow({ groupId, user }: ChatWindowProps) {
       minute: "2-digit",
     });
 
-  // Fetch messages + subscribe
+  // Fetch messages dan subscribe ke channel
   useEffect(() => {
     if (!groupId || !user) return;
     let active = true;
@@ -56,12 +73,16 @@ export default function ChatWindow({ groupId, user }: ChatWindowProps) {
       const { data, error } = await supabase
         .from("messages")
         .select(
-          "*, users(id, name, email), message_attachments(id, file_url, file_type)"
+          `
+          *,
+          users(id, name, email),
+          message_attachments(id, message_id, file_url, file_type)
+          `
         )
         .eq("group_id", groupId)
         .order("created_at", { ascending: true });
 
-      if (!error && active) setMessages((data as any) || []);
+      if (!error && active) setMessages((data as MessageWithRelations[]) || []);
     };
     fetchMessages();
 
@@ -69,25 +90,17 @@ export default function ChatWindow({ groupId, user }: ChatWindowProps) {
       .channel(`group-messages-${groupId}`)
       .on(
         "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "messages",
-          filter: `group_id=eq.${groupId}`,
-        },
-        async (payload) => {
+        { event: "INSERT", schema: "public", table: "messages", filter: `group_id=eq.${groupId}` },
+        async (payload: SupabaseInsertPayload<Message>) => {
           const { data: userData } = await supabase
             .from("users")
             .select("id, name, email")
             .eq("id", payload.new.user_id)
             .single();
 
-          const newMessage: Message & {
-            users?: User;
-            message_attachments?: any[];
-          } = {
-            ...(payload.new as Message),
-            users: (userData as User) || undefined,
+          const newMessage: MessageWithRelations = {
+            ...payload.new,
+            users: userData || undefined,
             message_attachments: [],
           };
 
@@ -98,12 +111,8 @@ export default function ChatWindow({ groupId, user }: ChatWindowProps) {
       )
       .on(
         "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "message_attachments",
-        },
-        (payload) => {
+        { event: "INSERT", schema: "public", table: "message_attachments" },
+        (payload: SupabaseInsertPayload<MessageAttachment>) => {
           setMessages((prev) =>
             prev.map((msg) =>
               msg.id === payload.new.message_id
@@ -127,7 +136,7 @@ export default function ChatWindow({ groupId, user }: ChatWindowProps) {
     };
   }, [groupId, user]);
 
-  // Fetch group
+  // Fetch group info
   useEffect(() => {
     if (!groupId) return;
 
@@ -144,7 +153,7 @@ export default function ChatWindow({ groupId, user }: ChatWindowProps) {
     fetchGroup();
   }, [groupId]);
 
-  // Auto scroll
+  // Auto scroll ke pesan terakhir
   useEffect(() => {
     if (!messagesEndRef.current) return;
     messagesEndRef.current.scrollIntoView({
@@ -155,12 +164,10 @@ export default function ChatWindow({ groupId, user }: ChatWindowProps) {
   // Send message
   const sendMessage = async () => {
     if ((!input.trim() && files.length === 0) || !groupId || !user) return;
-
     const hasFiles = files.length > 0;
     if (hasFiles) setSendingFiles(true);
 
     try {
-      // 1. insert message
       const { data: message, error: msgError } = await supabase
         .from("messages")
         .insert([
@@ -175,12 +182,9 @@ export default function ChatWindow({ groupId, user }: ChatWindowProps) {
         .single();
 
       if (msgError || !message) throw msgError;
-
-      // reset input text langsung
       setInput("");
       setReplyingTo(null);
 
-      // upload file jika ada
       if (hasFiles) {
         for (const file of files) {
           const filePath = `group_${groupId}/${Date.now()}_${file.name}`;
@@ -190,9 +194,9 @@ export default function ChatWindow({ groupId, user }: ChatWindowProps) {
 
           if (uploadError) continue;
 
-          const {
-            data: { publicUrl },
-          } = supabase.storage.from("message_attachments").getPublicUrl(filePath);
+          const { data: { publicUrl } } = supabase.storage
+            .from("message_attachments")
+            .getPublicUrl(filePath);
 
           await supabase.from("message_attachments").insert({
             message_id: message.id,
@@ -234,9 +238,7 @@ export default function ChatWindow({ groupId, user }: ChatWindowProps) {
 
       await supabase.from("messages").delete().eq("id", actionTarget.message.id);
 
-      setMessages((prev) =>
-        prev.filter((msg) => msg.id !== actionTarget.message?.id)
-      );
+      setMessages((prev) => prev.filter((msg) => msg.id !== actionTarget.message?.id));
     } finally {
       setShowActions(false);
     }
@@ -252,11 +254,7 @@ export default function ChatWindow({ groupId, user }: ChatWindowProps) {
 
   return (
     <div className="flex flex-col flex-1 h-full relative bg-white">
-      <ChatHeader
-        groupId={groupId}
-        onToggleNotes={() => setShowDetail((prev) => !prev)}
-      />
-      
+      <ChatHeader groupId={groupId} onToggleNotes={() => setShowDetail((prev) => !prev)} />
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         <MessageList
           messages={messages}
@@ -268,7 +266,6 @@ export default function ChatWindow({ groupId, user }: ChatWindowProps) {
             setShowActions(true);
           }}
         />
-
         {sendingFiles && (
           <div className="flex justify-end">
             <div className="bg-blue-500 text-white px-4 py-2 rounded-2xl max-w-xs flex items-center gap-2">
@@ -277,15 +274,10 @@ export default function ChatWindow({ groupId, user }: ChatWindowProps) {
             </div>
           </div>
         )}
-
         <div ref={messagesEndRef} />
       </div>
 
-      <ReplyPreview
-        replyingTo={replyingTo}
-        onCancel={() => setReplyingTo(null)}
-      />
-
+      <ReplyPreview replyingTo={replyingTo} onCancel={() => setReplyingTo(null)} />
       <FilePreview
         files={files}
         onRemove={(i) => setFiles((prev) => prev.filter((_, idx) => idx !== i))}

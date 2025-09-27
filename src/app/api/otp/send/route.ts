@@ -11,9 +11,11 @@ export async function POST(req: Request) {
     const { error } = await supabase.from("otps").insert({ phone, code: otp });
     if (error) return NextResponse.json({ error: "Gagal simpan OTP" }, { status: 500 });
 
-    console.log(`OTP untuk ${phone} = ${otp}`); 
-    return NextResponse.json({ message: "OTP terkirim", otp }); 
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.log(`OTP untuk ${phone} = ${otp}`);
+    return NextResponse.json({ message: "OTP terkirim", otp });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Terjadi kesalahan";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
+
 }

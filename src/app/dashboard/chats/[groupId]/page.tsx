@@ -13,11 +13,12 @@ export default async function ChatDetailPage({ params }: ChatDetailPageProps) {
 
   if (isNaN(groupIdNum)) return <div>Invalid group</div>;
 
-  const { data: group, error } = await supabase
-    .from<any, any>("groups")
-    .select("*")
-    .eq("id", groupIdNum)
-    .maybeSingle();
+const { data: group, error } = await supabase
+  .from("groups")
+  .select("*")
+  .eq("id", groupIdNum)
+  .maybeSingle();
+
 
   if (error) {
     console.error("Supabase fetch error:", error);

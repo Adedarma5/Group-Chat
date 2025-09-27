@@ -8,7 +8,9 @@ export interface Group {
   id: number;
   name: string;
   description: string;
+  avatar_url?: string | null;
   created_by: number | null;
+  created_at: string;
 }
 
 export interface Message {

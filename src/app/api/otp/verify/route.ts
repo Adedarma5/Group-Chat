@@ -26,7 +26,7 @@ export async function POST(req: Request) {
       .eq("phone", phone)
       .single();
 
-    if (userError && userError.code !== "PGRST116") 
+    if (userError && userError.code !== "PGRST116")
       return NextResponse.json({ error: userError.message }, { status: 500 });
 
     if (!user) {
@@ -36,14 +36,16 @@ export async function POST(req: Request) {
         .select()
         .single();
 
-      if (insertError || !newUser) 
+      if (insertError || !newUser)
         return NextResponse.json({ error: "Gagal membuat user baru" }, { status: 500 });
 
       user = newUser;
     }
 
     return NextResponse.json({ user });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Terjadi kesalahan";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
+
 }
