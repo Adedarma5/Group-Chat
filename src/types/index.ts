@@ -2,6 +2,8 @@ export interface User {
   id: number;
   name: string;
   email: string;
+  phone?: string;
+  avatar_url?: string | null;
 }
 
 export interface Group {
@@ -19,7 +21,7 @@ export interface Message {
   user_id: number | null;
   content: string;
   created_at: string;
-   reply_to?: number | null; 
+  reply_to?: number | null; 
   users?: User;
   message_attachments?: message_attachments[];
 }

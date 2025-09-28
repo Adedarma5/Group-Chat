@@ -106,7 +106,6 @@ export default function CreateGroupModal({
           rows={3}
         />
 
-        {/* Upload Avatar */}
         <div className="flex flex-col gap-2 mb-3">
           <label className="text-sm font-medium">Gambar Grup (opsional)</label>
           <input

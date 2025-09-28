@@ -3,18 +3,28 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useParams, useRouter } from "next/navigation";
+import { Note } from "@/types";
+
+
+type NoteWithBlocks = Omit<Note, "content"> & {
+  content: { blocks: { text: string }[] };
+};
 
 export default function NotesPage() {
   const params = useParams();
   const router = useRouter();
   const groupId = Number(params.groupId);
-  const [notes, setNotes] = useState<any[]>([]);
+  const [notes, setNotes] = useState<NoteWithBlocks[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchNotes = async () => {
-      const { data } = await supabase.from("notes").select("*").eq("group_id", groupId);
-      setNotes(data || []);
+      const { data } = await supabase
+        .from("notes")
+        .select("*")
+        .eq("group_id", groupId);
+
+      setNotes((data as NoteWithBlocks[]) || []);
       setLoading(false);
     };
     fetchNotes();
@@ -30,7 +40,7 @@ export default function NotesPage() {
       ) : (
         <ul className="list-disc pl-5">
           {notes.map((n) => (
-            <li key={n.id}>{n.content.blocks[0].text}</li>
+            <li key={n.id}>{n.content.blocks[0]?.text ?? "Empty note"}</li>
           ))}
         </ul>
       )}

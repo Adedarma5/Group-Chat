@@ -4,12 +4,10 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { Plus, Trash2 } from "lucide-react";
 import CreateGroupModal from "@/components/modals/CreateGroupModal";
+import { Group, Message, User } from "@/types/index";
 
-interface Group {
-  id: number;
-  name: string;
-  avatar_url?: string | null;
-  created_at: string;
+interface LastMessage extends Message {
+  user_name: string;
 }
 
 interface GroupListProps {
@@ -18,7 +16,7 @@ interface GroupListProps {
 
 export default function GroupList({ onSelectGroup }: GroupListProps) {
   const [groups, setGroups] = useState<Group[]>([]);
-  const [lastMessages, setLastMessages] = useState<Record<number, any>>({});
+  const [lastMessages, setLastMessages] = useState<Record<number, LastMessage>>({});
   const [search, setSearch] = useState("");
   const [openModal, setOpenModal] = useState(false);
 
@@ -38,18 +36,18 @@ export default function GroupList({ onSelectGroup }: GroupListProps) {
   const fetchLastMessage = async (groupId: number) => {
     const { data: msg } = await supabase
       .from("messages")
-      .select("content, user_id, created_at")
+      .select("id, group_id, user_id, content, created_at")
       .eq("group_id", groupId)
       .order("created_at", { ascending: false })
       .limit(1)
-      .single();
+      .single<Message>();
 
     if (msg) {
       const { data: user } = await supabase
         .from("users")
         .select("name")
         .eq("id", msg.user_id)
-        .single();
+        .single<User>();
 
       setLastMessages((prev) => ({
         ...prev,
@@ -58,6 +56,7 @@ export default function GroupList({ onSelectGroup }: GroupListProps) {
     }
   };
 
+
   useEffect(() => {
     if (groups.length === 0) return;
 
@@ -65,11 +64,11 @@ export default function GroupList({ onSelectGroup }: GroupListProps) {
 
     const channel = supabase
       .channel("sidebar-messages")
-      .on(
+      .on<Message>(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "messages" },
         (payload) => {
-          const newMsg = payload.new as any;
+          const newMsg = payload.new;
           fetchLastMessage(newMsg.group_id);
         }
       )
@@ -79,7 +78,7 @@ export default function GroupList({ onSelectGroup }: GroupListProps) {
       supabase.removeChannel(channel);
     };
   }, [groups]);
-
+  
   const handleDeleteGroup = async (groupId: number) => {
     const confirm = window.confirm("Apakah kamu yakin ingin menghapus grup ini?");
     if (!confirm) return;

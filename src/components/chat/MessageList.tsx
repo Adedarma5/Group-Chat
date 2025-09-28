@@ -1,11 +1,16 @@
 "use client";
 
-import { Message, User } from "@/types";
+import { Message, User, message_attachments } from "@/types";
 import MessageItem from "./MessageItem";
 import { Loader2 } from "lucide-react";
 
+export interface ExtendedMessage extends Message {
+  users?: User;
+  message_attachments?: message_attachments[];
+}
+
 interface MessageListProps {
-  messages: (Message & { users?: User; message_attachments?: any[] })[];
+  messages: ExtendedMessage[];
   user: User | null;
   formatDateLabel: (timestamp: string) => string;
   formatTime: (timestamp: string) => string;
@@ -30,7 +35,7 @@ export default function MessageList({
             new Date(m.created_at).toDateString();
 
         const uniqueKey = `${m.id}-${m.created_at}-${i}`;
-        const isPending = m.id.toString().startsWith("temp-"); // ✅ pending check
+        const isPending = m.id.toString().startsWith("temp-"); 
 
         return (
           <div key={uniqueKey} data-message-date={m.created_at}>
@@ -49,7 +54,6 @@ export default function MessageList({
                 onSelect={onSelectMessage}
               />
 
-              {/* ✅ Spinner kalau pending */}
               {isPending && isMine && (
                 <Loader2
                   size={14}

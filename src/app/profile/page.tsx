@@ -3,10 +3,12 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
+import { User } from "@/types";
+
 
 export default function ProfilePage() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -17,20 +19,26 @@ export default function ProfilePage() {
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
-      const u = JSON.parse(storedUser);
-      setUser(u);
-      setName(u.name || "");
-      setPhone(u.phone || "");
-      setEmail(u.email || "");
-      setAvatarUrl(u.avatar_url || "");
+      try {
+        const parsed: User = JSON.parse(storedUser);
+        setUser(parsed);
+        setName(parsed.name || "");
+        setPhone(parsed.phone || "");
+        setEmail(parsed.email || "");
+        setAvatarUrl(parsed.avatar_url || "");
+      } catch (err) {
+        console.error("Invalid user data in localStorage:", err);
+      }
     } else {
       router.push("/auth/login");
     }
   }, [router]);
 
   const uploadAvatar = async (file: File) => {
+    if (!user) return null;
     const fileName = `${user.id}_${file.name}`;
-    const { data, error } = await supabase.storage
+
+    const { error } = await supabase.storage
       .from("avatars")
       .upload(fileName, file, { upsert: true });
 

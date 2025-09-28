@@ -1,16 +1,24 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { User } from "@/types";
 import GroupList from "@/app/dashboard/grouplist/GroupList";
 import ChatWindow from "@/app/dashboard/chats/ChatWindow";
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    if (storedUser) setUser(JSON.parse(storedUser));
+    if (storedUser) {
+      try {
+        const parsed: User = JSON.parse(storedUser);
+        setUser(parsed);
+      } catch (err) {
+        console.error("Invalid user data in localStorage:", err);
+      }
+    }
   }, []);
 
   if (!user) {

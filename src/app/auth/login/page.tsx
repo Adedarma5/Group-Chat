@@ -8,7 +8,7 @@ export default function LoginPage() {
   const [otp, setOtp] = useState("");
   const [step, setStep] = useState<"phone" | "otp">("phone");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false); 
+  const [loading, setLoading] = useState(false);
 
   const sendOtp = async () => {
     setError("");
@@ -78,11 +78,11 @@ export default function LoginPage() {
                 className="p-2 border rounded-lg"
               />
               <button
+                type="submit"
                 onClick={sendOtp}
                 disabled={loading}
-                className={`p-2 rounded-lg text-white ${
-                  loading ? "bg-gray-400 cursor-not-allowed" : "bg-indigo-500"
-                }`}
+                className={`p-2 rounded-lg text-white ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-indigo-500"
+                  }`}
               >
                 {loading ? "Mengirim..." : "Kirim OTP"}
               </button>
@@ -97,11 +97,11 @@ export default function LoginPage() {
                 className="p-2 border rounded-lg"
               />
               <button
+                type="submit"
                 onClick={verifyOtp}
                 disabled={loading}
-                className={`p-2 rounded-lg text-white ${
-                  loading ? "bg-gray-400 cursor-not-allowed" : "bg-green-500"
-                }`}
+                className={`p-2 rounded-lg text-white ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-green-500"
+                  }`}
               >
                 {loading ? "Memverifikasi..." : "Verifikasi OTP"}
               </button>
