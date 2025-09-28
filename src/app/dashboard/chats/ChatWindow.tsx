@@ -11,7 +11,6 @@ import MessageList from "@/components/chat/MessageList";
 import ReplyPreview from "@/components/chat/ReplyPreview";
 import FilePreview from "@/components/chat/FilePreview";
 
-// Tipe attachment Supabase
 interface MessageAttachment {
   id: number;
   message_id: number;
@@ -20,13 +19,11 @@ interface MessageAttachment {
   uploading?: boolean;
 }
 
-// Message dengan relasi
 interface MessageWithRelations extends Message {
   users?: User;
   message_attachments?: MessageAttachment[];
 }
 
-// Tipe payload Supabase channel
 interface SupabaseInsertPayload<T> {
   new: T;
 }
@@ -64,7 +61,6 @@ export default function ChatWindow({ groupId, user }: ChatWindowProps) {
       minute: "2-digit",
     });
 
-  // Fetch messages dan subscribe ke channel
   useEffect(() => {
     if (!groupId || !user) return;
     let active = true;
@@ -136,7 +132,6 @@ export default function ChatWindow({ groupId, user }: ChatWindowProps) {
     };
   }, [groupId, user]);
 
-  // Fetch group info
   useEffect(() => {
     if (!groupId) return;
 
@@ -153,7 +148,6 @@ export default function ChatWindow({ groupId, user }: ChatWindowProps) {
     fetchGroup();
   }, [groupId]);
 
-  // Auto scroll ke pesan terakhir
   useEffect(() => {
     if (!messagesEndRef.current) return;
     messagesEndRef.current.scrollIntoView({
@@ -161,7 +155,6 @@ export default function ChatWindow({ groupId, user }: ChatWindowProps) {
     });
   }, [messages]);
 
-  // Send message
   const sendMessage = async () => {
     if ((!input.trim() && files.length === 0) || !groupId || !user) return;
     const hasFiles = files.length > 0;
