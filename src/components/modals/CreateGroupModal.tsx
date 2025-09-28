@@ -23,7 +23,7 @@ export default function CreateGroupModal({
 
   const uploadAvatar = async (file: File) => {
     const fileName = `${Date.now()}_${file.name}`;
-    const { data, error } = await supabase.storage
+    const { error } = await supabase.storage
       .from("group-avatars")
       .upload(fileName, file, { upsert: true });
 

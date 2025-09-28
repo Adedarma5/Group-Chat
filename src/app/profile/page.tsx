@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 import { User } from "@/types";
-
+import Image from "next/image";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -143,7 +143,13 @@ export default function ProfilePage() {
             }}
           />
           {avatarUrl && (
-            <img src={avatarUrl} className="w-24 h-24 rounded-full mt-2" />
+            <Image
+              src={avatarUrl}
+              alt="User avatar"
+              width={96} 
+              height={96}
+              className="w-24 h-24 rounded-full mt-2 object-cover"
+            />
           )}
         </div>
 
