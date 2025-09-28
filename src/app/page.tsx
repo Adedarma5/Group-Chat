@@ -146,7 +146,7 @@ export default function HomePage() {
                 />
               </div>
               <blockquote className="text-xl md:text-2xl font-medium text-gray-900 mb-4">
-                "{testimonials[currentTestimonial].content}"
+                {testimonials[currentTestimonial].content}
               </blockquote>
               <div className="text-indigo-600 font-semibold">{testimonials[currentTestimonial].name}</div>
               <div className="text-gray-500">{testimonials[currentTestimonial].role}</div>
