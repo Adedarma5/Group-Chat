@@ -20,7 +20,7 @@ export async function POST(req: Request) {
 
     await supabase.from("otps").delete().eq("id", otpData.id);
 
-    let { data: user, error: userError } = await supabase
+    const { error: userError, data: initialUser } = await supabase
       .from("users")
       .select("*")
       .eq("phone", phone)
@@ -28,6 +28,8 @@ export async function POST(req: Request) {
 
     if (userError && userError.code !== "PGRST116")
       return NextResponse.json({ error: userError.message }, { status: 500 });
+
+    let user = initialUser;
 
     if (!user) {
       const { data: newUser, error: insertError } = await supabase
@@ -47,5 +49,4 @@ export async function POST(req: Request) {
     const message = err instanceof Error ? err.message : "Terjadi kesalahan";
     return NextResponse.json({ error: message }, { status: 500 });
   }
-
 }
