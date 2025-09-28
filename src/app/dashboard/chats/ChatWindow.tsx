@@ -255,7 +255,7 @@ export default function ChatWindow({ groupId, user }: ChatWindowProps) {
   return (
     <div className="flex flex-col flex-1 h-full relative bg-white">
       <ChatHeader groupId={groupId} onToggleNotes={() => setShowDetail((prev) => !prev)} />
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+      <div className="flex-1 overflow-y-auto p-4 space-y-3 break-words overflow-hidden">
         <MessageList
           messages={messages}
           user={user}

@@ -31,15 +31,13 @@ export default function MessageItem({
 
   return (
     <div
-      className={`relative flex flex-col max-w-[70%] p-3 rounded-lg shadow-sm ${
-        isMine ? "ml-auto bg-blue-500 text-white" : "mr-auto bg-gray-200 text-gray-900"
-      }`}
+      className={`relative flex flex-col max-w-[70%] p-3 rounded-lg shadow-sm ${isMine ? "ml-auto bg-blue-500 text-white" : "mr-auto bg-gray-200 text-gray-900"
+        }`}
     >
       <button
         onClick={() => onSelect(message, isMine)}
-        className={`absolute top-2 ${
-          isMine ? "-left-7" : "-right-7"
-        } text-gray-500 hover:text-black`}
+        className={`absolute top-2 ${isMine ? "-left-7" : "-right-7"
+          } text-gray-500 hover:text-black`}
         aria-label="pesan actions"
       >
         <MoreVertical size={18} />
@@ -53,11 +51,10 @@ export default function MessageItem({
 
       {repliedMsg && (
         <div
-          className={`border-l-2 p-1 text-xs rounded mb-2 ${
-            isMine
+          className={`border-l-2 p-1 text-xs rounded mb-2 ${isMine
               ? "border-blue-200 bg-blue-400/30"
               : "border-blue-300 bg-white"
-          }`}
+            }`}
         >
           <span className="block font-medium text-xs mb-1">
             {repliedMsg.users?.name || "Pengguna"}
@@ -100,12 +97,16 @@ export default function MessageItem({
           )
         )}
 
-      {message.content && <span className="break-words">{message.content}</span>}
+      {message.content && (
+        <span className="whitespace-pre-wrap break-words overflow-hidden text-wrap w-full">
+          {message.content}
+        </span>
+      )}
+
 
       <span
-        className={`text-xs mt-1 self-end ${
-          isMine ? "text-blue-100" : "text-gray-600"
-        }`}
+        className={`text-xs mt-1 self-end ${isMine ? "text-blue-100" : "text-gray-600"
+          }`}
       >
         {formatTime(message.created_at)}
       </span>
