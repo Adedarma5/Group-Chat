@@ -11,6 +11,8 @@ export default function Sidebar() {
 
   const handleLogout = () => {
     localStorage.removeItem("user");
+    document.cookie = "supabase_token=; path=/; max-age=0";
+
     router.push("/auth/login");
   };
 

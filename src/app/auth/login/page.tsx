@@ -43,12 +43,16 @@ export default function LoginPage() {
         body: JSON.stringify({ phone, code: otp }),
       });
       const data = await res.json();
-      if (res.ok) {
+
+      if (res.ok && data.user) {
         localStorage.setItem("user", JSON.stringify(data.user));
+
+        document.cookie = `supabase_token=${data.token}; path=/; max-age=${60 * 60 * 24};`;
+
         if (!data.user.name) router.push("/profile");
         else router.push("/dashboard");
       } else {
-        setError(data.error);
+        setError(data.error || "OTP salah atau expired");
       }
     } catch (err) {
       setError("Terjadi kesalahan. Coba lagi.");
@@ -56,6 +60,7 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="grid grid-cols-2 min-h-screen">
