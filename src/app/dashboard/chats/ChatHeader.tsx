@@ -40,9 +40,6 @@ export default function ChatHeader({ groupId, onToggleNotes, onOpenSettings }: C
       <div className="flex items-center gap-3">
         <div>
           <h2 className="font-bold text-lg">{groupName}</h2>
-          <p className="text-sm text-gray-500">
-            {memberCount} member{memberCount !== 1 ? "s" : ""}
-          </p>
         </div>
       </div>
 
